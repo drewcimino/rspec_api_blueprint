@@ -17,7 +17,7 @@ RSpec.configure do |config|
     end
   end
 
-  config.after(:each, type: :request) do
+  config.after(:each, type: :request) do |example|
     response ||= last_response
     request ||= last_request
 
@@ -27,12 +27,13 @@ RSpec.configure do |config|
 
       while example_group
         example_groups << example_group
-        example_group = example_group[:example_group]
+        example_group = example_group[:parent_example_group]
       end
 
       action = example_groups[-2][:description_args].first if example_groups[-2]
       example_groups[-1][:description_args].first.match(/(\w+)\sRequests/)
-      file_name = $1.underscore
+      path = example.metadata[:example_group][:file_path]
+      file_name = File.basename(path).underscore
 
       if defined? Rails
         file = File.join(Rails.root, "/api_docs/#{file_name}.txt")
@@ -67,7 +68,7 @@ RSpec.configure do |config|
         # Response
         f.write "+ Response #{response.status} #{response.content_type}\n\n"
 
-        if response.body.present? && response.content_type =~ /application\/json/
+        if response.body.present? && response.content_type == 'application/json'
           f.write "#{JSON.pretty_generate(JSON.parse(response.body))}\n\n".indent(8)
         end
       end unless response.status == 401 || response.status == 403 || response.status == 301
