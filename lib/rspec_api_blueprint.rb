@@ -1,20 +1,23 @@
 require "rspec_api_blueprint/version"
 require "rspec_api_blueprint/string_extensions"
 
+def api_docs_folder_path
+  (defined? Rails) ? File.join(Rails.root, '/api_docs/') : File.join(File.expand_path('.'), '/api_docs/')
+end
+
+def doc_file_path(file_name)
+  File.join(api_docs_folder_path, "#{file_name}.txt")
+end
 
 RSpec.configure do |config|
   config.before(:suite) do
-    if defined? Rails
-      api_docs_folder_path = File.join(Rails.root, '/api_docs/')
-    else
-      api_docs_folder_path = File.join(File.expand_path('.'), '/api_docs/')
-    end
-
     Dir.mkdir(api_docs_folder_path) unless Dir.exists?(api_docs_folder_path)
 
     Dir.glob(File.join(api_docs_folder_path, '*')).each do |f|
       File.delete(f)
     end
+
+    $rspec_api_blueprinted_spec_documents ||= {}
   end
 
   config.after(:each, type: :request) do |example|
@@ -35,43 +38,50 @@ RSpec.configure do |config|
       path = example.metadata[:example_group][:file_path]
       file_name = File.basename(path).underscore
 
-      if defined? Rails
-        file = File.join(Rails.root, "/api_docs/#{file_name}.txt")
-      else
-        file = File.join(File.expand_path('.'), "/api_docs/#{file_name}.txt")
-      end
-
-      File.open(file, 'a') do |f|
+      unless [301, 401, 403].include? response.status
         # Resource & Action
-        f.write "# #{action}\n\n"
+        spec_doc = "# #{action}\n\n"
 
         # Request
         request_body = request.body.read
         authorization_header = request.env ? request.env['Authorization'] : request.headers['Authorization']
 
         if request_body.present? || authorization_header.present?
-          f.write "+ Request #{request.content_type}\n\n"
+          spec_doc << "+ Request #{request.content_type}\n\n"
 
           # Request Headers
           if authorization_header.present?
-            f.write "+ Headers\n\n".indent(4)
-            f.write "Authorization: #{authorization_header}\n\n".indent(12)
+            spec_doc << "+ Headers\n\n".indent(4)
+            spec_doc << "Authorization: #{authorization_header}\n\n".indent(12)
           end
 
           # Request Body
           if request_body.present? && request.content_type == 'application/json'
-            f.write "+ Body\n\n".indent(4) if authorization_header
-            f.write "#{JSON.pretty_generate(JSON.parse(request_body))}\n\n".indent(authorization_header ? 12 : 8)
+            spec_doc << "+ Body\n\n".indent(4) if authorization_header
+            spec_doc << "#{JSON.pretty_generate(JSON.parse(request_body))}\n\n".indent(authorization_header ? 12 : 8)
           end
         end
 
         # Response
-        f.write "+ Response #{response.status} #{response.content_type}\n\n"
+        spec_doc << "+ Response #{response.status} #{response.content_type}\n\n"
 
         if response.body.present? && response.content_type == 'application/json'
-          f.write "#{JSON.pretty_generate(JSON.parse(response.body))}\n\n".indent(8)
+          spec_doc << "#{JSON.pretty_generate(JSON.parse(response.body))}\n\n".indent(8)
         end
-      end unless response.status == 401 || response.status == 403 || response.status == 301
+
+        $rspec_api_blueprinted_spec_documents[file_name] ||= {}
+        $rspec_api_blueprinted_spec_documents[file_name][example.metadata[:line_number]] = spec_doc
+      end
+    end
+  end
+
+  config.after(:suite) do
+    $rspec_api_blueprinted_spec_documents.each do |file_name, spec_docs_by_line_number|
+      File.open(doc_file_path(file_name), 'a') do |f|
+        ordered_line_numbers = spec_docs_by_line_number.keys.sort
+
+        ordered_line_numbers.each { |line_number| f.write spec_docs_by_line_number[line_number] }
+      end
     end
   end
 end
