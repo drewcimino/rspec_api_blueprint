@@ -6,7 +6,7 @@ def api_docs_folder_path
 end
 
 def doc_file_path(file_name)
-  File.join(api_docs_folder_path, "#{file_name}.txt")
+  File.join(api_docs_folder_path, "#{file_name}.md")
 end
 
 RSpec.configure do |config|
