@@ -40,7 +40,7 @@ RSpec.configure do |config|
 
       unless [301, 401, 403].include? response.status
         # Resource & Action
-        spec_doc = "# #{example.metadata[:full_description] || action}\n\n"
+        spec_doc = "## #{example.metadata[:full_description] || action}\n\n"
 
         # Request
         request_body = request.body.read
