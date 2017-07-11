@@ -11,12 +11,6 @@ end
 
 RSpec.configure do |config|
   config.before(:suite) do
-    Dir.mkdir(api_docs_folder_path) unless Dir.exists?(api_docs_folder_path)
-
-    Dir.glob(File.join(api_docs_folder_path, '*')).each do |f|
-      File.delete(f)
-    end
-
     $rspec_api_blueprinted_spec_documents ||= {}
   end
 
@@ -76,11 +70,15 @@ RSpec.configure do |config|
   end
 
   config.after(:suite) do
-    $rspec_api_blueprinted_spec_documents.each do |file_name, spec_docs_by_line_number|
-      File.open(doc_file_path(file_name), 'a') do |f|
-        ordered_line_numbers = spec_docs_by_line_number.keys.sort
+    unless $rspec_api_blueprinted_spec_documents.empty?
+      Dir.mkdir(api_docs_folder_path) unless Dir.exists?(api_docs_folder_path)
 
-        ordered_line_numbers.each { |line_number| f.write spec_docs_by_line_number[line_number] }
+      $rspec_api_blueprinted_spec_documents.each do |file_name, spec_docs_by_line_number|
+        File.open(doc_file_path(file_name), 'w+') do |f|
+          ordered_line_numbers = spec_docs_by_line_number.keys.sort
+
+          ordered_line_numbers.each { |line_number| f.write spec_docs_by_line_number[line_number] }
+        end
       end
     end
   end
