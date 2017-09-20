@@ -30,7 +30,7 @@ RSpec.configure do |config|
       action = example_groups[-2][:description_args].first if example_groups[-2]
       example_groups[-1][:description_args].first.match(/(\w+)\sRequests/)
       path = example.metadata[:example_group][:file_path]
-      file_name = File.basename(path).underscore
+      file_name = path.sub(/^\.\/spec\/(api|integration|request)\//, '').underscore
 
       unless [301, 401, 403].include? response.status
         # Resource & Action
@@ -74,9 +74,12 @@ RSpec.configure do |config|
       Dir.mkdir(api_docs_folder_path) unless Dir.exists?(api_docs_folder_path)
 
       $rspec_api_blueprinted_spec_documents.each do |file_name, spec_docs_by_line_number|
+        file_name_with_path = doc_file_path(file_name)
+        directory_name      = File.dirname(file_name_with_path)
+        FileUtils.mkdir_p(directory_name) unless File.directory?(directory_name)
+
         File.open(doc_file_path(file_name), 'w+') do |f|
           ordered_line_numbers = spec_docs_by_line_number.keys.sort
-
           ordered_line_numbers.each { |line_number| f.write spec_docs_by_line_number[line_number] }
         end
       end
