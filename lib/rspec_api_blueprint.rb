@@ -1,5 +1,6 @@
 require "rspec_api_blueprint/version"
 require "rspec_api_blueprint/string_extensions"
+require "rspec_api_blueprint/spec_helpers"
 
 def api_docs_folder_path
   (defined? Rails) ? File.join(Rails.root, '/api_docs/') : File.join(File.expand_path('.'), '/api_docs/')
