@@ -33,40 +33,38 @@ RSpec.configure do |config|
       path = example.metadata[:example_group][:file_path]
       file_name = path.sub(/^\.\/spec\/(api|integration|request)\//, '').underscore
 
-      unless [301, 401, 403].include? response.status
-        # Resource & Action
-        spec_doc = "## #{example.metadata[:full_description] || action}\n\n"
+      # Resource & Action
+      spec_doc = "## #{example.metadata[:full_description] || action}\n\n"
 
-        # Request
-        request_body = request.body.read
-        authorization_header = request.env ? request.env['Authorization'] : request.headers['Authorization']
+      # Request
+      request_body = request.body.read
+      authorization_header = request.env ? request.env['Authorization'] : request.headers['Authorization']
 
-        if request_body.present? || authorization_header.present?
-          spec_doc << "+ Request #{request.content_type}\n\n"
+      if request_body.present? || authorization_header.present?
+        spec_doc << "+ Request #{request.content_type}\n\n"
 
-          # Request Headers
-          if authorization_header.present?
-            spec_doc << "+ Headers\n\n".indent(4)
-            spec_doc << "Authorization: #{authorization_header}\n\n".indent(12)
-          end
-
-          # Request Body
-          if request_body.present? && request.content_type == 'application/json'
-            spec_doc << "+ Body\n\n".indent(4) if authorization_header
-            spec_doc << "#{JSON.pretty_generate(JSON.parse(request_body))}\n\n".indent(authorization_header ? 12 : 8)
-          end
+        # Request Headers
+        if authorization_header.present?
+          spec_doc << "+ Headers\n\n".indent(4)
+          spec_doc << "Authorization: #{authorization_header}\n\n".indent(12)
         end
 
-        # Response
-        spec_doc << "+ Response #{response.status} #{response.content_type}\n\n"
-
-        if response.body.present? && response.content_type == 'application/json'
-          spec_doc << "#{JSON.pretty_generate(JSON.parse(response.body))}\n\n".indent(8)
+        # Request Body
+        if request_body.present? && request.content_type == 'application/json'
+          spec_doc << "+ Body\n\n".indent(4) if authorization_header
+          spec_doc << "#{JSON.pretty_generate(JSON.parse(request_body))}\n\n".indent(authorization_header ? 12 : 8)
         end
-
-        $rspec_api_blueprinted_spec_documents[file_name] ||= {}
-        $rspec_api_blueprinted_spec_documents[file_name][example.metadata[:line_number]] = spec_doc
       end
+
+      # Response
+      spec_doc << "+ Response #{response.status} #{response.content_type}\n\n"
+
+      if response.body.present? && response.content_type == 'application/json'
+        spec_doc << "#{JSON.pretty_generate(JSON.parse(response.body))}\n\n".indent(8)
+      end
+
+      $rspec_api_blueprinted_spec_documents[file_name] ||= {}
+      $rspec_api_blueprinted_spec_documents[file_name][example.metadata[:line_number]] = spec_doc
     end
   end
 
