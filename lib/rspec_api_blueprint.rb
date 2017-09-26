@@ -38,7 +38,7 @@ RSpec.configure do |config|
 
       # Request
       request_body = request.body.read
-      authorization_header = request.env ? request.env['Authorization'] : request.headers['Authorization']
+      authorization_header = (request.env && request.env['Authorization']) || request.headers['Authorization']
 
       if request_body.present? || authorization_header.present?
         spec_doc << "+ Request #{request.content_type}\n\n"
@@ -52,7 +52,7 @@ RSpec.configure do |config|
         # Request Body
         if request_body.present? && request.content_type == 'application/json'
           spec_doc << "+ Body\n\n".indent(4) if authorization_header
-          spec_doc << "#{JSON.pretty_generate(JSON.parse(request_body))}\n\n".indent(authorization_header ? 12 : 8)
+          spec_doc << "#{JSON.pretty_generate(JSON.parse(request_body))}\n\n".indent(authorization_header.present? ? 12 : 8)
         end
       end
 
