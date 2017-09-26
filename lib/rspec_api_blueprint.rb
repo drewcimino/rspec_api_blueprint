@@ -59,8 +59,18 @@ RSpec.configure do |config|
       # Response
       spec_doc << "+ Response #{response.status} #{response.content_type}\n\n"
 
+      # Response Headers
+      if response.headers.any?
+        spec_doc << "+ Headers\n\n".indent(4)
+        response.headers.each do |name, value|
+          spec_doc << "#{name}: #{value}\n".indent(12)
+        end
+        spec_doc << "\n"
+      end
+
       if response.body.present? && response.content_type == 'application/json'
-        spec_doc << "#{JSON.pretty_generate(JSON.parse(response.body))}\n\n".indent(8)
+        spec_doc << "+ Body\n\n".indent(4)
+        spec_doc << "#{JSON.pretty_generate(JSON.parse(response.body))}\n\n".indent(response.headers.any? ? 12 : 8)
       end
 
       $rspec_api_blueprinted_spec_documents[file_name] ||= {}
