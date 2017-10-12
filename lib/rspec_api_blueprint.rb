@@ -1,3 +1,4 @@
+require "rspec/core"
 require "rspec_api_blueprint/version"
 require "rspec_api_blueprint/string_extensions"
 require "rspec_api_blueprint/spec_helpers"
