@@ -1,14 +1,12 @@
-require "rspec/core"
-require "rspec_api_blueprint/version"
-require "rspec_api_blueprint/string_extensions"
-require "rspec_api_blueprint/spec_helpers"
-
-def api_docs_folder_path
-  (defined? Rails) ? File.join(Rails.root, '/api_docs/') : File.join(File.expand_path('.'), '/api_docs/')
-end
+require 'rspec/core'
+require 'rspec_api_blueprint/base'
+require 'rspec_api_blueprint/configuration'
+require 'rspec_api_blueprint/version'
+require 'rspec_api_blueprint/string_extensions'
+require 'rspec_api_blueprint/spec_helpers'
 
 def doc_file_path(file_name)
-  File.join(api_docs_folder_path, "#{file_name}.md")
+  File.join RspecApiBlueprint.configuration.docs_folder, "#{file_name}.md"
 end
 
 RSpec.configure do |config|
@@ -75,22 +73,22 @@ RSpec.configure do |config|
       end
 
       $rspec_api_blueprinted_spec_documents[file_name] ||= {}
-      $rspec_api_blueprinted_spec_documents[file_name][example.metadata[:line_number]] = spec_doc
+      $rspec_api_blueprinted_spec_documents[file_name][example.metadata[RspecApiBlueprint.configuration.sort_key]] = spec_doc
     end
   end
 
   config.after(:suite) do
     unless $rspec_api_blueprinted_spec_documents.empty?
-      Dir.mkdir(api_docs_folder_path) unless Dir.exists?(api_docs_folder_path)
+      Dir.mkdir(RspecApiBlueprint.configuration.docs_folder) unless Dir.exists?(RspecApiBlueprint.configuration.docs_folder)
 
-      $rspec_api_blueprinted_spec_documents.each do |file_name, spec_docs_by_line_number|
+      $rspec_api_blueprinted_spec_documents.each do |file_name, spec_docs_by_sort_key|
         file_name_with_path = doc_file_path(file_name)
         directory_name      = File.dirname(file_name_with_path)
         FileUtils.mkdir_p(directory_name) unless File.directory?(directory_name)
 
         File.open(doc_file_path(file_name), 'w+') do |f|
-          ordered_line_numbers = spec_docs_by_line_number.keys.sort
-          ordered_line_numbers.each { |line_number| f.write spec_docs_by_line_number[line_number] }
+          ordered_keys = spec_docs_by_sort_key.keys.sort
+          ordered_keys.each { |key| f.write spec_docs_by_sort_key[key] }
         end
       end
     end
