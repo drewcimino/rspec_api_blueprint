@@ -9,6 +9,22 @@ def doc_file_path(file_name)
   File.join RspecApiBlueprint.configuration.docs_folder, "#{file_name}.md"
 end
 
+def spec_file_name(example)
+  example_group = example.metadata[:example_group]
+  example_groups = []
+
+  while example_group
+    example_groups << example_group
+    example_group = example_group[:parent_example_group]
+  end
+
+  action = example_groups[-2][:description_args].first if example_groups[-2]
+  example_groups[-1][:description_args].first.match(/(\w+)\sRequests/) # TODO does this do anything? -DC
+  path = example.metadata[:example_group][:file_path]
+
+  path.sub(/^\.\/spec\/(api|integration|request)\//, '').underscore
+end
+
 def documentation_for(example, request, response)
   "## #{example.metadata[:full_description] || action}\n\n".tap do |doc_string|
     doc_string << request_doc(request)
@@ -67,21 +83,8 @@ RSpec.configure do |config|
     request ||= last_request
 
     if response
-      example_group = example.metadata[:example_group]
-      example_groups = []
-
-      while example_group
-        example_groups << example_group
-        example_group = example_group[:parent_example_group]
-      end
-
-      action = example_groups[-2][:description_args].first if example_groups[-2]
-      example_groups[-1][:description_args].first.match(/(\w+)\sRequests/)
-      path = example.metadata[:example_group][:file_path]
-      file_name = path.sub(/^\.\/spec\/(api|integration|request)\//, '').underscore
-
-      # Resource & Action
-      spec_doc = documentation_for(example, request, response)
+      file_name = spec_file_name(example)
+      spec_doc  = documentation_for(example, request, response)
 
       $rspec_api_blueprinted_spec_documents[file_name] ||= {}
       $rspec_api_blueprinted_spec_documents[file_name][example.metadata[RspecApiBlueprint.configuration.sort_key]] = spec_doc
