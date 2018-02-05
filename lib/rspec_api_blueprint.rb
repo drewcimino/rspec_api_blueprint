@@ -5,59 +5,21 @@ require 'rspec_api_blueprint/version'
 require 'rspec_api_blueprint/string_extensions'
 require 'rspec_api_blueprint/spec_helpers'
 require 'rspec_api_blueprint/generator'
-
-def doc_file_path(file_name)
-  File.join RspecApiBlueprint.configuration.docs_folder, "#{file_name}.md"
-end
-
-def spec_file_name(example)
-  example_group = example.metadata[:example_group]
-  example_groups = []
-
-  while example_group
-    example_groups << example_group
-    example_group = example_group[:parent_example_group]
-  end
-
-  action = example_groups[-2][:description_args].first if example_groups[-2]
-  example_groups[-1][:description_args].first.match(/(\w+)\sRequests/) # TODO does this do anything? -DC
-  path = example.metadata[:example_group][:file_path]
-
-  path.sub(/^\.\/spec\/(api|integration|request)\//, '').underscore
-end
+require 'rspec_api_blueprint/file_writer'
 
 RSpec.configure do |config|
   config.before(:suite) do
-    $rspec_api_blueprinted_spec_documents ||= {}
+    $file_writer = RspecApiBlueprint::FileWriter.new
   end
 
   config.after(:each, type: :request) do |example|
-    response ||= last_response
-    request ||= last_request
-
-    if response
-      file_name = spec_file_name(example)
-      spec_doc  = RspecApiBlueprint::Generator.new(example, request, response).documentation
-
-      $rspec_api_blueprinted_spec_documents[file_name] ||= {}
-      $rspec_api_blueprinted_spec_documents[file_name][example.metadata[RspecApiBlueprint.configuration.sort_key]] = spec_doc
+    if response ||= last_response
+      request ||= last_request
+      $file_writer.add example, RspecApiBlueprint::Generator.new(example, request, response).documentation
     end
   end
 
   config.after(:suite) do
-    unless $rspec_api_blueprinted_spec_documents.empty?
-      Dir.mkdir(RspecApiBlueprint.configuration.docs_folder) unless Dir.exists?(RspecApiBlueprint.configuration.docs_folder)
-
-      $rspec_api_blueprinted_spec_documents.each do |file_name, spec_docs_by_sort_key|
-        file_name_with_path = doc_file_path(file_name)
-        directory_name      = File.dirname(file_name_with_path)
-        FileUtils.mkdir_p(directory_name) unless File.directory?(directory_name)
-
-        File.open(doc_file_path(file_name), 'w+') do |f|
-          ordered_keys = spec_docs_by_sort_key.keys.sort
-          ordered_keys.each { |key| f.write spec_docs_by_sort_key[key] }
-        end
-      end
-    end
+    $file_writer.write_to_disk
   end
 end
