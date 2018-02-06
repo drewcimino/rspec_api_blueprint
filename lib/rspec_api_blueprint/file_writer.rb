@@ -7,12 +7,12 @@ module RspecApiBlueprint
       @documentation_store[file_name][example.metadata[RspecApiBlueprint.configuration.sort_key]] = document
     end
 
-    def empty?
-      @documentation_store.empty?
+    def cached_docs?
+      @documentation_store.any?
     end
 
     def write_to_disk
-      unless empty?
+      if cached_docs?
         @documentation_store.each do |file_name, spec_docs_by_sort_key|
           file_name_with_path = doc_file_path(file_name)
           directory_name      = File.dirname(file_name_with_path)

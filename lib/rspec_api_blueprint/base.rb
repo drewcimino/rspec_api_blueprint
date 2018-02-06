@@ -12,7 +12,7 @@ module RspecApiBlueprint
   end
 
   def self.enable
-    if @file_writer && !file_writer.empty?
+    if file_writer && file_writer.cached_docs?
       warn 'Warning: Existing cached documentation has been erased by an additional call of RspecApiBlueprint.enable'
     end
 
@@ -20,10 +20,14 @@ module RspecApiBlueprint
   end
 
   def self.record(example, request, response)
-    @file_writer.add example, RspecApiBlueprint::Generator.new(example, request, response).documentation
+    file_writer.add example, Generator.new(example, request, response).documentation
   end
 
   def self.write_recorded_docs
-    @file_write.write_to_disk
+    file_writer.write_to_disk
+  end
+
+  def self.file_writer
+    @file_writer ||= FileWriter.new
   end
 end
