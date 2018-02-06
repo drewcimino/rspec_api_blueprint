@@ -43,15 +43,37 @@ module RspecApiBlueprint
       "+ Response #{@response.status} #{@response.content_type}\n\n".tap do |response_doc_string|
 
         # Response Headers
-        if @response.headers.any?
+        selected = documentable_response_headers
+
+        if selected.any?
           response_doc_string << "+ Headers\n\n".indent(4)
-          response_doc_string << @response.headers.map { |name, value| "#{name}: #{value}\n".indent(12) }.join
+          response_doc_string << selected.map { |name, value| "#{name}: #{value}\n".indent(12) }.join
           response_doc_string << "\n"
         end
 
         if @response.body.present? && @response.content_type == 'application/json'
           response_doc_string << "+ Body\n\n".indent(4)
           response_doc_string << "#{JSON.pretty_generate(JSON.parse(@response.body))}\n\n".indent(@response.headers.any? ? 12 : 8)
+        end
+      end
+    end
+
+    def documentable_response_headers
+      if RspecApiBlueprint.configuration.response_headers == :all
+        @response.headers
+      elsif RspecApiBlueprint.configuration.response_headers == :none
+        {}
+      elsif included = RspecApiBlueprint.configuration.response_headers[:only]
+        included = included.map(&:to_s)
+
+        @response.headers.each_with_object({}) do |(field, value), filtered_headers|
+          filtered_headers[field] = value if included.include? field
+        end
+      elsif excluded = RspecApiBlueprint.configuration.response_headers[:except]
+        included = @response.headers.keys - excluded.map(&:to_s)
+
+        @response.headers.each_with_object({}) do |(field, value), filtered_headers|
+          filtered_headers[field] = value if included.include? field
         end
       end
     end
