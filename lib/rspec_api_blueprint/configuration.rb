@@ -8,6 +8,8 @@ module RspecApiBlueprint
     attr_reader :sort_key
     attr_reader :docs_folder
     attr_reader :enabled
+    attr_reader :request_headers
+    attr_reader :response_headers
 
     def sort_key=(key)
       @sort_key = key.to_sym if ALLOWABLE_SORT_KEYS.include? key.to_sym
@@ -21,12 +23,26 @@ module RspecApiBlueprint
       @enabled = !!boolean
     end
 
+    def request_headers=(value)
+      if [:all, :none].include?(value) || value.is_a?(Hash) && [[:only], [:except]].include?(value.keys)
+        @request_headers = value
+      end
+    end
+
+    def response_headers=(value)
+      if [:all, :none].include?(value) || value.is_a?(Hash) && [[:only], [:except]].include?(value.keys)
+        @response_headers = value
+      end
+    end
+
     private
 
     def initialize
-      @enabled     = true
-      @sort_key  = :location
-      @docs_folder = File.join File.expand_path('.'), 'api_docs'
+      @enabled          = true
+      @sort_key         = :location
+      @docs_folder      = File.join File.expand_path('.'), 'api_docs'
+      @request_headers  = :none
+      @response_headers = :none
     end
 
     def base_path

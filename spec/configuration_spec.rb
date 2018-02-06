@@ -113,4 +113,88 @@ describe RspecApiBlueprint::Configuration do
       end
     end
   end
+
+  describe '#request_headers' do
+    it 'is :none by default' do
+      expect(config.request_headers).to eq(:none)
+    end
+  end
+
+  describe '#request_headers=' do
+    before(:each) { config.request_headers = value }
+
+    context 'with :all' do
+      let(:value) { :all }
+
+      it 'sets the option to :all' do
+        expect(config.request_headers).to eq(:all)
+      end
+    end
+
+    context 'with invalid options :some' do
+      let(:value) { :some }
+
+      it 'leaves the option set to :none' do
+        expect(config.request_headers).to eq(:none)
+      end
+    end
+
+    context 'with an only: list' do
+      let(:value) { { only: ['Content-Length'] } }
+
+      it 'sets the option to the only: list' do
+        expect(config.request_headers).to eq({ only: ['Content-Length'] })
+      end
+    end
+
+    context 'with an except: list' do
+      let(:value) { { except: ['Content-Length'] } }
+
+      it 'sets the option to the except: list' do
+        expect(config.request_headers).to eq({ except: ['Content-Length'] })
+      end
+    end
+  end
+
+  describe '#response_headers' do
+    it 'is :none by default' do
+      expect(config.response_headers).to eq(:none)
+    end
+  end
+
+  describe '#response_headers=' do
+    before(:each) { config.response_headers = value }
+
+    context 'with :all' do
+      let(:value) { :all }
+
+      it 'sets the option to :all' do
+        expect(config.response_headers).to eq(:all)
+      end
+    end
+
+    context 'with invalid options :some' do
+      let(:value) { :some }
+
+      it 'leaves the the option set to :none' do
+        expect(config.response_headers).to eq(:none)
+      end
+    end
+
+    context 'with an only: list' do
+      let(:value) { { only: ['Content-Length'] } }
+
+      it 'sets the option to the only: list' do
+        expect(config.response_headers).to eq({ only: ['Content-Length'] })
+      end
+    end
+
+    context 'with an except: list' do
+      let(:value) { { except: ['Content-Length'] } }
+
+      it 'lsets the option to the except: list' do
+        expect(config.response_headers).to eq({ except: ['Content-Length'] })
+      end
+    end
+  end
 end
