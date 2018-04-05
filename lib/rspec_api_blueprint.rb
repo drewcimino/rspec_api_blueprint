@@ -13,7 +13,7 @@ RSpec.configure do |config|
   end
 
   config.after(:each, type: :request) do |example|
-    if response ||= last_response
+    if RspecApiBlueprint.configuration.enabled && response ||= last_response
       request ||= last_request
 
       RspecApiBlueprint.record example, request, response
