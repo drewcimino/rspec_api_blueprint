@@ -61,7 +61,7 @@ The output:
 
 ## Caveats
 
-401, 403 and 301 statuses are ignored since rspec produces a undesired output.
+401, 403 and 301 statuses are ignored since rspec produces an undesired output.
 
 TODO: Add option to choose ignored statuses.
 
