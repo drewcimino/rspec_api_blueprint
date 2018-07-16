@@ -4,27 +4,47 @@ Autogeneration of API documentation using the Blueprint format from request spec
 
 You can find more about Blueprint at http://apiblueprint.org
 
-## Installation
+## What is this?
 
-Add this line to your application's Gemfile:
+  This is a heavily refactored fork of calderalabs/rspec_api_blueprint with several added features, mostly related to configuration options giving you more control over the output format.
 
-    gem 'rspec_api_blueprint', require: false
+### RspecApiBlueprint.configuration
+
+  Is a configuration object that you can use to store settings about how you want RspecApiBlueprint to write your documentation. The following configuration options are available via `Configuration#method=`:
+
+  * `#sort_key`: (default: `:location`) The attribute applied to each spec to determine the order it should be printed in the documentation file. This can be useful for git-tracked documentation folders in order to track changes to the API as the requests and response change in your test suite. Available options are: `:location`, `:line_number`.
+  * `#docs_folder`: (default: `'./api_docs/'`) The folder in which to write/store output documentation files.
+  * `#enabled`: (default: `true`) Record/write requests and responses from Rspec api/integration specs.
+  * `#request_headers`: (default: `:none`) Request headers to record and write into the documentation. Available options are `:all`, `:none`, `only: ['header', 'names', 'to', 'record']`, and, `except: ['header', 'names', 'to', 'ignore']`.
+  * `#response_headers`: (default: `:none`): Exactly the same as #request_headers, but for the responses.
+
+## Installation & Usage
+
+### Rails
+
+Add this line to your application's Gemfile, probably under `group :test` :
+
+    gem 'rspec_api_blueprint', git: 'https://github.com/drewcimino/rspec_api_blueprint.git'
 
 And then execute:
 
     $ bundle
 
-Or install it yourself as:
+### Plain Ruby
+
+Install it yourself:
 
     $ gem install rspec_api_blueprint
 
-## Usage
-
-In your spec_helper.rb file add
+and
 
     require 'rspec_api_blueprint'
 
-Write tests using the following convention:
+as needed.
+
+## Spec Conventions
+
+Write  using the following convention:
 
 - Tests must be placed in `spec/requests` folder or they have to be tagged with `type: :request`
 - Top level descriptions are named after the model (plural form) followed by the word “Requests”. For a example model called Arena it would be “Arenas Requests”.
