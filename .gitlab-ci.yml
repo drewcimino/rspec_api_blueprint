@@ -1,6 +1,8 @@
 rspec:
   stage: test
-  script: bundle exec rspec
+  script:
+    - bundle install
+    - bundle exec rspec
   artifacts:
     expose_as: 'coverage'
     paths:
