@@ -1,4 +1,4 @@
-require 'byebug'
+require 'spec_helper'
 require 'rspec_api_blueprint'
 
 describe RspecApiBlueprint::Configuration do

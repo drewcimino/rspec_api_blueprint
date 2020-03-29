@@ -1,0 +1,20 @@
+rspec:
+  stage: test
+  script: rspec
+  artifacts:
+    expose_as: 'coverage'
+    paths:
+      - coverage/cobertura-coverage.xml
+    reports:
+      cobertura: coverage/cobertura-coverage.xml
+    expire_in: 1 year
+
+include:
+  - template: Code-Quality.gitlab-ci.yml
+
+code_quality:
+  stage: test
+  artifacts:
+    paths:
+      - gl-code-quality-report.json
+    expire_in: 1 year
