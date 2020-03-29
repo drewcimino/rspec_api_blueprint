@@ -40,7 +40,7 @@ module RspecApiBlueprint
     end
 
     def response_doc
-      "+ Response #{@response.status} #{@response.content_type}\n\n".tap do |response_doc_string|
+      "+ Response #{@response.status} #{@response.media_type}\n\n".tap do |response_doc_string|
 
         # Response Headers
         selected = documentable_response_headers
@@ -51,7 +51,7 @@ module RspecApiBlueprint
           response_doc_string << "\n"
         end
 
-        if @response.body.present? && @response.content_type == 'application/json'
+        if @response.body.present? && @response.media_type == 'application/json'
           response_doc_string << "+ Body\n\n".indent(4)
           response_doc_string << "#{JSON.pretty_generate(JSON.parse(@response.body))}\n\n".indent(@response.headers.any? ? 12 : 8)
         end
