@@ -6,7 +6,7 @@ rspec:
   artifacts:
     expose_as: 'coverage'
     paths:
-      - coverage/cobertura-coverage.xml
+      - coverage/coverage.xml
     reports:
       cobertura: coverage/cobertura-coverage.xml
     expire_in: 1 year
