@@ -20,7 +20,7 @@ module RspecApiBlueprint
       authorization_header = (@request.env && @request.env['Authorization']) || @request.headers['Authorization']
 
       if request_body.present? || authorization_header.present?
-        "+ Request #{@request.content_type}\n\n".tap do |request_doc_string|
+        ['+', 'Request', @request.content_type].select(&:present?).join(' ').concat("\n\n").tap do |request_doc_string|
 
           # Request Headers
           if authorization_header.present?
@@ -40,7 +40,7 @@ module RspecApiBlueprint
     end
 
     def response_doc
-      "+ Response #{@response.status} #{@response.media_type}\n\n".tap do |response_doc_string|
+      ['+', 'Response', @response.status, @response.media_type].select(&:present?).join(' ').concat("\n\n").tap do |response_doc_string|
 
         # Response Headers
         selected = documentable_response_headers
